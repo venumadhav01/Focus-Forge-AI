@@ -11,7 +11,7 @@
 
 **A premium, futuristic student productivity dashboard — no frameworks, no backend, no installs.**
 
-[🚀 Live Demo](#) · [📖 Features](#-features) · [🛠 Setup](#-setup) · [🤝 Contributing](#-contributing)
+[🚀 Live Demo](https://venumadhav01.github.io/Focus-Forge-AI/#) · [📖 Features](#-features) · [🛠 Setup](#-setup) · [🤝 Contributing](#-contributing)
 
 </div>
 
