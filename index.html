@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="FocusForge — AI-Powered Student Productivity Dashboard" />
+  <title>FocusForge — AI Student Dashboard</title>
+
+  <!-- Google Fonts: Orbitron (display) + Syne (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     ANIMATED PARTICLES BACKGROUND
+═══════════════════════════════════════════ -->
+<canvas id="particleCanvas"></canvas>
+
+<!-- ═══════════════════════════════════════════
+     INTRO TYPING SCREEN
+═══════════════════════════════════════════ -->
+<div id="introScreen">
+  <div class="intro-content">
+    <div class="intro-logo">⚡</div>
+    <div id="typingText" class="typing-text"></div>
+    <div class="intro-sub">Initializing your productivity core...</div>
+    <div class="intro-bar"><div class="intro-bar-fill"></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MOTIVATIONAL POPUP NOTIFICATION
+═══════════════════════════════════════════ -->
+<div id="notificationToast" class="notification-toast hidden">
+  <span class="notif-icon">🎯</span>
+  <span id="notifText">Keep going!</span>
+  <button onclick="closeNotif()" class="notif-close">×</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     ACHIEVEMENT UNLOCK POPUP
+═══════════════════════════════════════════ -->
+<div id="achievementPopup" class="achievement-popup hidden">
+  <div class="ach-glow"></div>
+  <div class="ach-icon" id="achIcon">🏆</div>
+  <div class="ach-title">Achievement Unlocked!</div>
+  <div class="ach-name" id="achName">First Session</div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     FOCUS MODE OVERLAY
+═══════════════════════════════════════════ -->
+<div id="focusOverlay" class="focus-overlay hidden">
+  <div class="focus-timer-display" id="focusTimerDisplay">25:00</div>
+  <div class="focus-label">DEEP FOCUS MODE</div>
+  <button class="focus-exit-btn" onclick="toggleFocusMode()">Exit Focus Mode (Esc)</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN APP WRAPPER
+═══════════════════════════════════════════ -->
+<div id="app" class="app hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">FocusForge</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-section="dashboard" onclick="switchSection('dashboard',this)">
+        <span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" data-section="pomodoro" onclick="switchSection('pomodoro',this)">
+        <span class="nav-icon">⏱</span><span class="nav-label">Pomodoro</span>
+      </a>
+      <a href="#" class="nav-item" data-section="goals" onclick="switchSection('goals',this)">
+        <span class="nav-icon">🎯</span><span class="nav-label">Goals</span>
+      </a>
+      <a href="#" class="nav-item" data-section="subjects" onclick="switchSection('subjects',this)">
+        <span class="nav-icon">📚</span><span class="nav-label">Subjects</span>
+      </a>
+      <a href="#" class="nav-item" data-section="analytics" onclick="switchSection('analytics',this)">
+        <span class="nav-icon">📊</span><span class="nav-label">Analytics</span>
+      </a>
+      <a href="#" class="nav-item" data-section="achievements" onclick="switchSection('achievements',this)">
+        <span class="nav-icon">🏆</span><span class="nav-label">Badges</span>
+      </a>
+      <a href="#" class="nav-item" data-section="settings" onclick="switchSection('settings',this)">
+        <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme (T)">🌙</button>
+      <button class="icon-btn" onclick="toggleFocusMode()" title="Focus Mode (F)">🎯</button>
+      <button class="icon-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+    </div>
+  </aside>
+
+  <!-- HAMBURGER for mobile -->
+  <button class="hamburger" id="hamburger" onclick="toggleSidebar()">☰</button>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="main-content" id="mainContent">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="greeting-block">
+          <div class="ai-chip">🤖 AI</div>
+          <span id="greetingText" class="greeting-text">Welcome back, Scholar!</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="clock-block">
+          <div id="realTimeClock" class="real-time-clock">00:00:00</div>
+          <div id="realTimeDate" class="real-time-date">Loading...</div>
+        </div>
+        <div class="streak-chip">
+          🔥 <span id="streakCount">0</span> day streak
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══════════════
+         DASHBOARD SECTION
+    ═══════════════ -->
+    <section id="section-dashboard" class="section active">
+      <h2 class="section-title">Dashboard <span class="section-sub">Overview</span></h2>
+
+      <!-- STAT CARDS ROW -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">⏱</div>
+          <div class="stat-value" id="statTotalMinutes">0</div>
+          <div class="stat-label">Minutes Studied Today</div>
+          <div class="stat-bar"><div class="stat-bar-fill" id="statMinBar" style="width:0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔁</div>
+          <div class="stat-value" id="statSessions">0</div>
+          <div class="stat-label">Sessions Completed</div>
+          <div class="stat-bar"><div class="stat-bar-fill accent2" id="statSesBar" style="width:0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value" id="statGoalsCompPct">0%</div>
+          <div class="stat-label">Goals Completed</div>
+          <div class="stat-bar"><div class="stat-bar-fill accent3" id="statGoalBar" style="width:0%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-value" id="statStreak2">0</div>
+          <div class="stat-label">Day Streak</div>
+          <div class="stat-bar"><div class="stat-bar-fill accent4" id="statStreakBar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- QUOTE + CALENDAR ROW -->
+      <div class="two-col">
+        <!-- Motivation quote card -->
+        <div class="glass-card quote-card">
+          <div class="card-header">💬 Daily Motivation</div>
+          <div id="motivationQuote" class="quote-text">"Loading inspiration..."</div>
+          <div id="quoteAuthor" class="quote-author">— FocusForge AI</div>
+          <button class="btn-sm" onclick="loadNewQuote()">New Quote ↻</button>
+        </div>
+
+        <!-- Mini Calendar -->
+        <div class="glass-card calendar-card">
+          <div class="card-header">📅 Calendar</div>
+          <div id="calendarWidget" class="calendar-widget"></div>
+        </div>
+      </div>
+
+      <!-- STUDY HEATMAP -->
+      <div class="glass-card heatmap-card">
+        <div class="card-header">🗓 Study Heatmap <span class="badge-pill">Last 52 Weeks</span></div>
+        <div id="heatmapGrid" class="heatmap-grid"></div>
+        <div class="heatmap-legend">
+          <span>Less</span>
+          <div class="legend-box l0"></div><div class="legend-box l1"></div>
+          <div class="legend-box l2"></div><div class="legend-box l3"></div>
+          <div class="legend-box l4"></div>
+          <span>More</span>
+        </div>
+      </div>
+
+      <!-- PRODUCTIVITY TIP -->
+      <div class="glass-card tip-card">
+        <div class="tip-icon">💡</div>
+        <div>
+          <div class="tip-label">Productivity Tip</div>
+          <div id="productivityTip" class="tip-text">Loading tip...</div>
+        </div>
+        <button class="btn-sm" onclick="loadNewTip()">Next ↻</button>
+      </div>
+    </section>
+
+    <!-- ═══════════════
+         POMODORO SECTION
+    ═══════════════ -->
+    <section id="section-pomodoro" class="section">
+      <h2 class="section-title">Pomodoro <span class="section-sub">Timer</span></h2>
+
+      <div class="pomo-layout">
+        <!-- Timer Card -->
+        <div class="glass-card pomo-card">
+          <!-- Mode tabs -->
+          <div class="pomo-tabs">
+            <button class="pomo-tab active" id="tabFocus" onclick="setPomoMode('focus')">Focus</button>
+            <button class="pomo-tab" id="tabShort" onclick="setPomoMode('short')">Short Break</button>
+            <button class="pomo-tab" id="tabLong" onclick="setPomoMode('long')">Long Break</button>
+          </div>
+
+          <!-- Circular ring -->
+          <div class="pomo-ring-wrap">
+            <svg class="pomo-ring" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+              <circle class="ring-bg" cx="110" cy="110" r="96"/>
+              <circle class="ring-fill" id="ringFill" cx="110" cy="110" r="96"
+                stroke-dasharray="603" stroke-dashoffset="0"/>
+            </svg>
+            <div class="pomo-center">
+              <div id="timerDisplay" class="timer-display">25:00</div>
+              <div id="timerMode" class="timer-mode">FOCUS TIME</div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="pomo-controls">
+            <button class="ctrl-btn" onclick="resetTimer()" title="Reset (R)">↺</button>
+            <button class="ctrl-btn primary" id="startBtn" onclick="toggleTimer()" title="Start/Pause (Space)">▶</button>
+            <button class="ctrl-btn" onclick="skipTimer()" title="Skip">⏭</button>
+          </div>
+
+          <!-- Session dots -->
+          <div class="session-dots" id="sessionDots"></div>
+
+          <!-- Edit durations -->
+          <div class="pomo-settings">
+            <label>Focus <input type="number" id="editFocus" class="duration-input" value="25" min="1" max="99" onchange="updateDurations()"/> min</label>
+            <label>Short <input type="number" id="editShort" class="duration-input" value="5" min="1" max="30" onchange="updateDurations()"/> min</label>
+            <label>Long <input type="number" id="editLong" class="duration-input" value="15" min="1" max="60" onchange="updateDurations()"/> min</label>
+          </div>
+
+          <div class="pomo-counter">Sessions today: <strong id="pomoCount">0</strong></div>
+        </div>
+
+        <!-- Session History -->
+        <div class="glass-card session-history-card">
+          <div class="card-header">📜 Session History</div>
+          <div id="sessionHistory" class="session-history-list">
+            <div class="empty-state">No sessions yet. Start focusing! 🚀</div>
+          </div>
+          <button class="btn-sm danger" onclick="clearSessionHistory()">Clear History</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════
+         GOALS SECTION
+    ═══════════════ -->
+    <section id="section-goals" class="section">
+      <h2 class="section-title">Daily <span class="section-sub">Goals</span></h2>
+
+      <!-- Add goal form -->
+      <div class="glass-card add-goal-card">
+        <input type="text" id="goalInput" class="text-input" placeholder="Add a new goal… (Enter to save)" maxlength="120"
+               onkeydown="if(event.key==='Enter') addGoal()" />
+        <select id="goalPriority" class="select-input">
+          <option value="high">🔴 High</option>
+          <option value="medium" selected>🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+        <button class="btn-primary" onclick="addGoal()">+ Add Goal</button>
+        <input type="text" id="searchGoals" class="text-input search-input" placeholder="🔍 Search goals…"
+               oninput="renderGoals()" />
+      </div>
+
+      <!-- Progress overview -->
+      <div class="glass-card goal-progress-card">
+        <div class="goal-progress-label">
+          <span>Task Completion</span>
+          <span id="goalProgressPct">0%</span>
+        </div>
+        <div class="big-progress-bar">
+          <div id="goalProgressBar" class="big-progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Goals list -->
+      <div class="glass-card goals-list-card" id="goalsContainer">
+        <div class="empty-state">No goals yet. Add one above! 🎯</div>
+      </div>
+    </section>
+
+    <!-- ═══════════════
+         SUBJECTS SECTION
+    ═══════════════ -->
+    <section id="section-subjects" class="section">
+      <h2 class="section-title">Subject <span class="section-sub">Progress</span></h2>
+
+      <div class="glass-card add-subject-card">
+        <input type="text" id="subjectInput" class="text-input" placeholder="Subject name…" maxlength="40" />
+        <input type="color" id="subjectColor" class="color-input" value="#6c63ff" title="Pick color" />
+        <button class="btn-primary" onclick="addSubject()">+ Add Subject</button>
+      </div>
+
+      <div id="subjectsContainer" class="subjects-grid">
+        <div class="empty-state">No subjects yet. Add one above! 📚</div>
+      </div>
+    </section>
+
+    <!-- ═══════════════
+         ANALYTICS SECTION
+    ═══════════════ -->
+    <section id="section-analytics" class="section">
+      <h2 class="section-title">Weekly <span class="section-sub">Analytics</span></h2>
+
+      <div class="glass-card analytics-card">
+        <div class="card-header">📈 Study Minutes — Last 7 Days</div>
+        <div class="bar-chart-wrap">
+          <div id="weeklyBarChart" class="bar-chart"></div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="glass-card">
+          <div class="card-header">📋 All-time Stats</div>
+          <ul class="stats-list" id="allTimeStats"></ul>
+        </div>
+        <div class="glass-card">
+          <div class="card-header">📤 Export Data</div>
+          <p class="export-desc">Download all your study stats as a JSON file for backup or analysis.</p>
+          <button class="btn-primary" onclick="exportStats()">⬇ Export Stats JSON</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════
+         ACHIEVEMENTS SECTION
+    ═══════════════ -->
+    <section id="section-achievements" class="section">
+      <h2 class="section-title">Achievement <span class="section-sub">Badges</span></h2>
+      <div id="badgesGrid" class="badges-grid"></div>
+    </section>
+
+    <!-- ═══════════════
+         SETTINGS SECTION
+    ═══════════════ -->
+    <section id="section-settings" class="section">
+      <h2 class="section-title">App <span class="section-sub">Settings</span></h2>
+
+      <div class="glass-card settings-card">
+        <div class="setting-row">
+          <label>🌙 Dark / Light Mode</label>
+          <button class="toggle-btn" id="themeToggleBtn" onclick="toggleTheme()">Dark</button>
+        </div>
+        <div class="setting-row">
+          <label>🎨 Accent Color</label>
+          <div class="color-swatches" id="colorSwatches"></div>
+        </div>
+        <div class="setting-row">
+          <label>🔔 Notifications</label>
+          <button class="toggle-btn" id="notifsToggle" onclick="toggleNotifications()">ON</button>
+        </div>
+        <div class="setting-row">
+          <label>🎵 Ambient Sound</label>
+          <button class="toggle-btn" id="ambientToggle" onclick="toggleAmbient()">OFF</button>
+        </div>
+        <div class="setting-row">
+          <label>⌨️ Keyboard Shortcuts</label>
+          <div class="shortcuts-list">
+            <div class="shortcut"><kbd>Space</kbd> Start/Pause timer</div>
+            <div class="shortcut"><kbd>R</kbd> Reset timer</div>
+            <div class="shortcut"><kbd>F</kbd> Focus mode</div>
+            <div class="shortcut"><kbd>T</kbd> Toggle theme</div>
+            <div class="shortcut"><kbd>Esc</kbd> Exit focus mode</div>
+          </div>
+        </div>
+        <div class="setting-row danger-zone">
+          <label>⚠️ Danger Zone</label>
+          <button class="btn-danger" onclick="resetAllData()">🗑 Reset All Data</button>
+        </div>
+      </div>
+
+      <!-- Music player section -->
+      <div class="glass-card music-card">
+        <div class="card-header">🎵 Focus Music Player</div>
+        <div class="music-note">Connect your favorite study playlist below:</div>
+        <div class="music-links">
+          <a href="https://open.spotify.com/playlist/37i9dQZF1DX8NTLI2TtZa6" target="_blank" class="music-link spotify">🎧 Spotify Study Playlist</a>
+          <a href="https://www.youtube.com/results?search_query=lofi+hip+hop+study" target="_blank" class="music-link yt">▶ YouTube Lo-Fi</a>
+        </div>
+        <!-- Ambient sound toggle visual -->
+        <div class="ambient-panel">
+          <div class="ambient-label">🌊 Ambient Sounds</div>
+          <div class="ambient-btns">
+            <button class="ambient-btn" onclick="playAmbient('rain')" title="Rain">🌧 Rain</button>
+            <button class="ambient-btn" onclick="playAmbient('forest')" title="Forest">🌿 Forest</button>
+            <button class="ambient-btn" onclick="playAmbient('cafe')" title="Cafe">☕ Café</button>
+            <button class="ambient-btn stop" onclick="stopAmbient()">⏹ Stop</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div><!-- end #app -->
+
+<script src="script.js"></script>
+</body>
+</html>
